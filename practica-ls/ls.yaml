@@ -1,0 +1,168 @@
+#T* Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
+  name: ls
+spec:
+  rules:
+  - host: guarnier-ls.my.kube.um.edu.ar
+    http:
+      paths:
+      - backend:
+          service:
+            name: ls
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix
+
+---
+
+#T* ConfigMap 1
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: ls-config1
+data:
+  PUID: "1000" 
+  PGID: "1000"
+  TZ: "Etc/AR"
+
+---
+
+#T* StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  name: ls
+  labels:
+    app: ls
+
+spec:
+  serviceName: ls
+
+  selector:
+    matchLabels:
+      app: ls
+
+  replicas: 1
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: ls
+
+    spec:
+      initContainers:
+      - name: init
+        image: busybox
+        imagePullPolicy: IfNotPresent
+
+        command: ['rm', '-rf', '/music/lost+found']
+        volumeMounts:
+        - name: music
+          mountPath: /music
+
+
+      containers:
+      - image: linuxserver/mstream:5.11.4
+        name: linuxserver
+        imagePullPolicy: IfNotPresent
+        resources: {}
+
+        ports:
+          - name: ls
+            containerPort: 3000
+        
+        env:
+        #! Variables de entorno del ConfigMap
+        - name: PUID
+          valueFrom:
+            configMapKeyRef:
+              name: ls-config1
+              key: PUID
+        
+        - name: PGID
+          valueFrom:
+            configMapKeyRef:
+              name: ls-config1
+              key: PGID
+        
+        - name: TZ
+          valueFrom:
+            configMapKeyRef:
+              name: ls-config1
+              key: TZ
+        
+        volumeMounts:
+        #! Volumen de datos persistentes
+        - name: config
+          mountPath: /config
+        
+        - name: music
+          mountPath: /music
+      
+        #! Volumen para carga configmap con archivos
+        - name: music-example
+          mountPath: /music/example
+      
+      #! Volumen para carga configmap con archivos
+      volumes:
+      - name: music-example
+        configMap:
+          name: music-example
+          
+          items:
+          - key: music1.mp3
+            path: music1.mp3
+          
+          - key: music2.mp3
+            path: music2.mp3
+        
+  volumeClaimTemplates:
+  #! Volumen de datos persistentes
+  - metadata:
+      name: config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+  
+  - metadata:
+      name: music
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+status: 
+  replicas: 1
+
+---
+
+#T* Service
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: ls
+  name: ls
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: ls
+status:
+  loadBalancer: {}
+
+---

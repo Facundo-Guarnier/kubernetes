@@ -1,0 +1,24 @@
+#T* ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mb-db-config
+
+data:
+  MB_DB_USER: facu
+  MB_DB_DBNAME: metabase
+  
+  MB_DB_TYPE: postgres
+  MB_DB_PORT: "5432"
+  MB_DB_HOST: db
+
+---
+#T* Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: mb-db-secret
+
+data:
+  MB_DB_PASS: TGFDb250cmFzZcOxYURlTGFCYXNlRGVEYXRvczEyMzQ= #! LaContraseñaDeLaBaseDeDatos1234

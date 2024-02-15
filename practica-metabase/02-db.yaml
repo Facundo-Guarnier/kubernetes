@@ -1,0 +1,94 @@
+#T* StatefulSet postgres
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db
+  labels:
+    app: db
+
+spec:
+  serviceName: "db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  
+  template:
+    metadata:
+      generateName: db
+      labels:
+        app: db
+  
+    spec:
+      initContainers:
+        - name: init
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command: ['rm', '-rf', '/var/lib/postgresql/data/lost+found']
+          
+          volumeMounts:
+          - name: data
+            mountPath: /var/lib/postgresql/data
+      
+      containers:
+        - name: db
+          image: postgres:12.18-bullseye
+          imagePullPolicy: IfNotPresent
+          resources: {}
+        
+          ports:
+          - containerPort: 5432
+            name: db
+    
+          env:
+          #! Variables de entorno de ConfigMap
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: mb-db-config
+                  key: MB_DB_DBNAME
+            
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: mb-db-config
+                  key: MB_DB_USER
+            
+            #! Variables de entorno de Secret
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mb-db-secret
+                  key: MB_DB_PASS
+            
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+
+status: 
+  replicas: 1
+---
+#T* Service postgres
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    app: db
+
+spec:
+  selector:
+    app: db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

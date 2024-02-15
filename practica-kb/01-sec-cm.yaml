@@ -1,0 +1,21 @@
+#T* ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kb-db-config
+
+data:
+  MYSQL_DATABASE: kanboard
+
+---
+#T* Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: kb-db-secret
+  
+data:
+  MYSQL_ROOT_PASSWORD: TGFDb250cmFzZcOxYVNlZ3VyYTEwMjQ=
+  DATABASE_URL: bXlzcWw6Ly9yb290OkxhQ29udHJhc2XDsWFTZWd1cmExMDI0QG15c3FsOjMzMDYva2FuYm9hcmQ=
+  #!mysql://user:password@service:port/db

@@ -1,0 +1,136 @@
+# apiVersion: apps/v1
+# kind: StatefulSet
+# metadata:
+#   name: kb
+
+# spec:
+#   replicas: 1
+#   serviceName: "kb"
+  
+#   selector:
+#     matchLabels:
+#       run: kb
+
+#   template:
+#     metadata:
+#       labels:
+#         run: kb
+
+#     spec:
+#       containers:
+#       - name: kanboard
+#         image: kanboard/kanboard:v1.2.9
+#         resources: {}
+        
+#         ports:
+#         - containerPort: 80
+
+#         env:
+#         - name: PLUGIN_INSTALLER
+#           valueFrom:
+#             configMapKeyRef:
+#               name: kb
+#               key: PLUGIN_INSTALLER
+
+#         volumeMounts:
+#         - name: kb-data
+#           mountPath: "/var/www/app"
+#         - name: kb-ssl
+#           mountPath: "/etc/nginx/ssl"
+
+#   volumeClaimTemplates:
+#   - metadata:
+#       name: kb-data
+#     spec:
+#       accessModes: [ "ReadWriteOnce" ]
+#       resources:
+#         requests:
+#           storage: 1Gi
+  
+#   - metadata:
+#       name: kb-ssl
+#     spec:
+#       accessModes: [ "ReadWriteOnce" ]
+#       resources:
+#         requests:
+#           storage: 1Gi
+
+---
+#T* Deployment
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: kb
+  labels:
+    run: kb
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: kb
+  
+  template:
+    metadata:
+      generateName: kb
+      labels:
+        run: kb
+    
+    spec:
+      containers:
+        - name: kanboard
+          image: kanboard/kanboard:v1.2.9
+          imagePullPolicy: Always
+          
+          ports:
+          - name: kb
+            containerPort: 80
+
+          env:
+            #! Variables de entorno del Secret
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: kb-db-secret
+                  key: DATABASE_URL
+
+---
+#T* Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
+  name: web
+spec:
+  rules:
+  - host: guarnier-kb-web.my.kube.um.edu.ar
+    http:
+      paths:
+      - backend:
+          service:
+            name: kb
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+
+---
+#T* Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: kb
+  labels:
+    run: kb
+
+spec:
+  selector:
+    run: kb
+
+  ports:
+    - port: 80
+      name: kb
+      targetPort: 80

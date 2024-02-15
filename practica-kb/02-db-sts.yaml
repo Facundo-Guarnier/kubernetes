@@ -1,0 +1,77 @@
+#T* Stateful mysql
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    run: mysql
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: mysql
+  serviceName: mysql
+  
+  template:
+    metadata:
+      generateName: mysql
+      labels:
+        run: mysql
+    
+    spec:
+      containers:
+        - name: mysql
+          image: mariadb:11
+          imagePullPolicy: Always
+          
+          env:
+            #! Variables de entorno del Secret
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kb-db-secret
+                  key: MYSQL_ROOT_PASSWORD
+            
+            #! Variables de entorno del configMap
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: kb-db-config
+                  key: MYSQL_DATABASE
+              
+          ports:
+            - containerPort: 3306
+              name: mysql
+          
+          volumeMounts:
+            - name: mysql-data
+              mountPath: "/var/lib/mysql"
+              subPath: db
+      
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+
+---
+#T* Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    run: mysql
+
+spec:
+  selector:
+    run: mysql
+
+  ports:
+    - port: 3306
+      targetPort: 3306
+      name: mysql-port

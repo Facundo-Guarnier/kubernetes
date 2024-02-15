@@ -1,0 +1,105 @@
+#T* Deployment Metabase
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: metabase
+  labels:
+    app: metabase
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metabase
+
+  template:
+    metadata:
+      labels:
+        app: metabase
+
+    spec:
+      containers:
+      - name: metabase
+        image: metabase/metabase:v0.48.6
+
+        ports:
+        - containerPort: 3000
+
+        env:
+        #! Variables de entorno de ConfigMap
+        - name: MB_DB_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: mb-db-config
+              key: MB_DB_TYPE
+        
+        - name: MB_DB_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              name: mb-db-config
+              key: MB_DB_DBNAME
+        
+        - name: MB_DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: mb-db-config
+              key: MB_DB_PORT
+        
+        - name: MB_DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: mb-db-config
+              key: MB_DB_USER
+        
+        - name: MB_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: mb-db-config
+              key: MB_DB_HOST
+        
+        #! Variables de entorno de Secret
+        - name: MB_DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: mb-db-secret
+              key: MB_DB_PASS
+
+---
+#T* Service Metabase
+apiVersion: v1
+kind: Service
+metadata:
+  name: metabase
+  labels:
+    app: metabase
+  
+spec:
+  selector:
+    app: metabase
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+
+---
+#T* Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
+  name: web
+spec:
+  rules:
+  - host: guarnier-mb.my.kube.um.edu.ar
+    http:
+      paths:
+      - backend:
+          service:
+            name: metabase
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix
