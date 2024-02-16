@@ -1,61 +1,3 @@
-# apiVersion: apps/v1
-# kind: StatefulSet
-# metadata:
-#   name: kb
-
-# spec:
-#   replicas: 1
-#   serviceName: "kb"
-  
-#   selector:
-#     matchLabels:
-#       run: kb
-
-#   template:
-#     metadata:
-#       labels:
-#         run: kb
-
-#     spec:
-#       containers:
-#       - name: kanboard
-#         image: kanboard/kanboard:v1.2.9
-#         resources: {}
-        
-#         ports:
-#         - containerPort: 80
-
-#         env:
-#         - name: PLUGIN_INSTALLER
-#           valueFrom:
-#             configMapKeyRef:
-#               name: kb
-#               key: PLUGIN_INSTALLER
-
-#         volumeMounts:
-#         - name: kb-data
-#           mountPath: "/var/www/app"
-#         - name: kb-ssl
-#           mountPath: "/etc/nginx/ssl"
-
-#   volumeClaimTemplates:
-#   - metadata:
-#       name: kb-data
-#     spec:
-#       accessModes: [ "ReadWriteOnce" ]
-#       resources:
-#         requests:
-#           storage: 1Gi
-  
-#   - metadata:
-#       name: kb-ssl
-#     spec:
-#       accessModes: [ "ReadWriteOnce" ]
-#       resources:
-#         requests:
-#           storage: 1Gi
-
----
 #T* Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -84,8 +26,8 @@ spec:
           imagePullPolicy: Always
           
           ports:
-          - name: kb
-            containerPort: 80
+            - name: kb
+              containerPort: 80
 
           env:
             #! Variables de entorno del Secret
