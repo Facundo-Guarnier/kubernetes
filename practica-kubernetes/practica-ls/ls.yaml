@@ -59,88 +59,88 @@ spec:
 
     spec:
       initContainers:
-      - name: init
-        image: busybox
-        imagePullPolicy: IfNotPresent
+        - name: init
+          image: busybox
+          imagePullPolicy: IfNotPresent
 
-        command: ['rm', '-rf', '/music/lost+found']
-        volumeMounts:
-        - name: music
-          mountPath: /music
+          command: ['rm', '-rf', '/music/lost+found']
+          volumeMounts:
+          - name: music
+            mountPath: /music
 
 
       containers:
-      - image: linuxserver/mstream:5.11.4
-        name: linuxserver
-        imagePullPolicy: IfNotPresent
-        resources: {}
+        - image: linuxserver/mstream:5.11.4
+          name: linuxserver
+          imagePullPolicy: IfNotPresent
+          resources: {}
 
-        ports:
-          - name: ls
-            containerPort: 3000
-        
-        env:
-        #! Variables de entorno del ConfigMap
-        - name: PUID
-          valueFrom:
-            configMapKeyRef:
-              name: ls-config1
-              key: PUID
-        
-        - name: PGID
-          valueFrom:
-            configMapKeyRef:
-              name: ls-config1
-              key: PGID
-        
-        - name: TZ
-          valueFrom:
-            configMapKeyRef:
-              name: ls-config1
-              key: TZ
-        
-        volumeMounts:
-        #! Volumen de datos persistentes
-        - name: config
-          mountPath: /config
-        
-        - name: music
-          mountPath: /music
-      
-        #! Volumen para carga configmap con archivos
-        - name: music-example
-          mountPath: /music/example
+          ports:
+            - name: ls
+              containerPort: 3000
+          
+          env:
+            #! Variables de entorno del ConfigMap
+            - name: PUID
+              valueFrom:
+                configMapKeyRef:
+                  name: ls-config1
+                  key: PUID
+            
+            - name: PGID
+              valueFrom:
+                configMapKeyRef:
+                  name: ls-config1
+                  key: PGID
+            
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: ls-config1
+                  key: TZ
+          
+          volumeMounts:
+            #! Volumen de datos persistentes
+            - name: config
+              mountPath: /config
+            
+            - name: music
+              mountPath: /music
+          
+            #! Volumen para carga configmap con archivos
+            - name: music-example
+              mountPath: /music/example
       
       #! Volumen para carga configmap con archivos
       volumes:
-      - name: music-example
-        configMap:
-          name: music-example
-          
-          items:
-          - key: music1.mp3
-            path: music1.mp3
-          
-          - key: music2.mp3
-            path: music2.mp3
+        - name: music-example
+          configMap:
+            name: music-example
+            
+            items:
+            - key: music1.mp3
+              path: music1.mp3
+            
+            - key: music2.mp3
+              path: music2.mp3
         
   volumeClaimTemplates:
-  #! Volumen de datos persistentes
-  - metadata:
-      name: config
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
-  
-  - metadata:
-      name: music
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
+    #! Volumen de datos persistentes
+    - metadata:
+        name: config
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+    
+    - metadata:
+        name: music
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
 
 status: 
   replicas: 1

@@ -28,14 +28,14 @@ metadata:
   name: metabase #* nombre del servicio
   labels:
     app: metabase #* nombre del 
-  
+
 spec:
   selector:
     app: metabase #* nombre de los pods
   ports:
-  - protocol: TCP
-    port: 3000 #* puerto del pod
-    targetPort: 3000 #* puerto que expone el servicio
+    - protocol: TCP
+      port: 3000 #* puerto del pod
+      targetPort: 3000 #* puerto que expone el servicio
 
 ---
 #T* Deployment
@@ -145,8 +145,8 @@ spec:
                 secretKeyRef:
                   name: mb-db-secret #* nombre del Secret
                   key: MB_DB_PASS #* nombre de la variable dentro del Secret
-            
-          #! Volumen en el container principal.
+          
+          #! Lugar de montado de volumen en el container principal.
           volumeMounts:
             #! Volumen para datos persistentes
             - name: data #* nombre del volumeClaimTemplates
@@ -158,7 +158,19 @@ spec:
             #! Volumen para carga configmap con archivos
             - name: mb-db-config-files #* nombre del ConfigMap con archivos
               mountPath: /music/example
-              
+      
+      #! Volumen para carga configmap con archivos
+      volumes:
+        - name: mb-db-config-files 
+          configMap:
+            name: mb-db-config-files #* nombre del ConfigMap con archivos
+            
+            items:
+            - key: index.html #* nombre del archivo
+              path: index.html #* ruta del archivo
+            
+            - key: archivo_2 #* nombre del archivo
+              path: ruta/a/guardar/archivo_2    #! La ruta parte de la ruta en volumeMounts.
   
   #! Volumenes de datos persistentes
   volumeClaimTemplates:
@@ -202,8 +214,8 @@ metadata:
   name: mb-db-config-files #* nombre del ConfigMap
 
 data:
-  archivo_1: |
-    contenido del archivo 1
+  index.html: |
+    <h1>Hola, soy Guarnold (〃￣︶￣)人(￣︶￣〃)</h1>
   archivo_2: |
     contenido del archivo 2
 

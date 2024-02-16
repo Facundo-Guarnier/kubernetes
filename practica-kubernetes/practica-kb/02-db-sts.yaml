@@ -4,20 +4,20 @@ kind: StatefulSet
 metadata:
   name: mysql
   labels:
-    run: mysql
+    app: mysql
 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      run: mysql
+      app: mysql
   serviceName: mysql
   
   template:
     metadata:
       generateName: mysql
       labels:
-        run: mysql
+        app: mysql
     
     spec:
       containers:
@@ -65,11 +65,11 @@ kind: Service
 metadata:
   name: mysql
   labels:
-    run: mysql
+    app: mysql
 
 spec:
   selector:
-    run: mysql
+    app: mysql
 
   ports:
     - port: 3306

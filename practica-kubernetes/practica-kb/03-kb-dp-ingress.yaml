@@ -5,19 +5,19 @@ kind: Deployment
 metadata:
   name: kb
   labels:
-    run: kb
+    app: kb
 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      run: kb
+      app: kb
   
   template:
     metadata:
       generateName: kb
       labels:
-        run: kb
+        app: kb
     
     spec:
       containers:
@@ -66,11 +66,11 @@ kind: Service
 metadata:
   name: kb
   labels:
-    run: kb
+    app: kb
 
 spec:
   selector:
-    run: kb
+    app: kb
 
   ports:
     - port: 80
