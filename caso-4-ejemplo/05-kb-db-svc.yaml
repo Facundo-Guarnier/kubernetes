@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kb-prod-db
+  labels:
+    run: kb-prod-db
+
+spec:
+  selector:
+    run: kb-prod-db
+
+  ports:
+  - port: 3306
+    name: kb-prod-db
+    targetPort: 3306
