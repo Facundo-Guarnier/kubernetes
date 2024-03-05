@@ -1,0 +1,4 @@
+Los ingress solo soportan la carga de archivos de hasta 1MB, por eso desde interfaz no se pueden subir los audios que pide 
+el profe (Child-Dreams, Brendan_Kinsella_-_02_-_Bach_-_Aria_Variata_BVW_989_-_Variation_No_2) pero si los ejemplos de 100 y 500KB.
+
+Para subir los otros audios hay que hacer "kubectl cp <audio.mp3> <pod>:/<ruta>, ej: k cp Child-Dreams.mp3 ls-0:/music 
