@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    spec.ingressClassName: nginx
+  name: mstream-ing
+spec:
+  rules:
+  - host: borbelli-mstream.my.kube.um.edu.ar
+    http:
+      paths:
+      - backend:
+          service:
+            name: mstream-app
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix

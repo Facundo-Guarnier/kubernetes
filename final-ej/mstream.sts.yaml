@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mstream-app
+  labels:
+    run: mstream-app
+spec:
+  serviceName: "mstream-ap"
+  replicas: 1
+  selector:
+    matchLabels:
+      run: mstream-app
+  template:
+    metadata:
+      generateName: mstream-app
+      labels:
+        run: mstream-app
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: mstream-app
+          image: linuxserver/mstream
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mstream-app
+              containerPort: 3000
+          env:
+            - name: PUID
+              valueFrom:
+                configMapKeyRef:
+                  name: mstream-configmap
+                  key: puid
+            - name: PGID
+              valueFrom:
+                configMapKeyRef:
+                  name: mstream-configmap
+                  key: pgid
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: mstream-configmap
+                  key: timezone
+          volumeMounts:
+            - mountPath: /config
+              name: mstream-data
+            - mountPath: /music           
+              name: mstream-music
+      volumes:
+        - configMap:
+            name: mstream-configmap
+          name: mstream-config
+  volumeClaimTemplates:
+      - metadata:
+          name: mstream-data
+        spec:
+          storageClassName: longhorn
+          accessModes: [ "ReadWriteOnce" ]
+          resources:
+            requests:
+              storage: 5Gi
+      - metadata:
+          name: mstream-music
+        spec:
+          storageClassName: longhorn
+          accessModes: [ "ReadWriteOnce" ]
+          resources:
+            requests:
+              storage: 5Gi
